@@ -1,9 +1,12 @@
 /*
  * Implementation of Path ORAM by Stefanov et. al.
-*/
+ */
 package oram2pc
 
-import "bytes"
+import (
+	// "bytes"
+	// "strings"
+)
 
 type Block struct {
 	mem []byte
@@ -11,7 +14,7 @@ type Block struct {
 
 /*
  * The client
-*/
+ */
 type Client struct {
 	stash []Block
 }
@@ -20,8 +23,7 @@ type Client struct {
  * Pretty print function for a client
  *
  * Prints the stash and various runtime statistics
-*/
+ */
 func (c *Client) pprint() {
-
+	// print blocks in a pretty way
 }
-
