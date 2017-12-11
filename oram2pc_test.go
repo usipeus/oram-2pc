@@ -9,8 +9,8 @@ import (
 )
 
 func Test_pathoram(t *testing.T) {
-	c := init_client(16, 4)
-	c.pp()
+	c := Init_client(60, 6, 16, 4)
+	c.Pp()
 }
 
 func Test_utils(t *testing.T) {
