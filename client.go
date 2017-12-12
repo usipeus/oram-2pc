@@ -5,7 +5,6 @@ package oram2pc
 
 import (
 	"fmt"
-	"math/rand"
 )
 
 /*
@@ -49,16 +48,14 @@ func Init_client(N uint, L uint, S uint, B uint) *Client {
 	c := &Client{stash: make([]Block, S, S), pos: make(map[uint]uint)}
 
 	// initialize stash as all zeroes
-	for i := 0; i < len(c.stash); i++ {
-		var j uint;
-		for j = 0; j < B; j++ {
-			c.stash[i].mem = make([]byte, B, B)
-		}
+	for i := range c.stash {
+		c.stash[i].mem = make([]byte, B, B)
 	}
 
 	// initialize pos map as random values
 	// create cryptographically secure shuffling of leaves
-	random_leaves := rand.Perm(2 << L)
+	random_leaves := RandomPerm(1 << L)
+	fmt.Println(random_leaves)
 
 	// assign each block with a unique random leaf
 	var i uint
