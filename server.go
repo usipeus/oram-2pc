@@ -7,6 +7,7 @@ import (
 	// "fmt"
 	// "math/rand"
 	"os"
+	"path/filepath"
 )
 
 type Block struct {
@@ -24,6 +25,8 @@ type Bucket struct {
  * The server
  */
 type Server struct {
+	B uint
+	Z uint
 	dir string
 }
 
@@ -35,7 +38,8 @@ type Server struct {
  *   Z: Capacity of each bucket in blocks
  */
 func Init_server(B uint, Z uint) *Server {
-	s := &Server{}
+	s := &Server{B: B, Z: Z}
+	s.dir = filepath.Join(os.TempDir(), GenAlphanumString(10))
 
 	return s
 }
