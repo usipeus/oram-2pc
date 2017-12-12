@@ -11,6 +11,9 @@ import (
 func Test_pathoram(t *testing.T) {
 	c := Init_client(60, 6, 16, 4)
 	c.Pp()
+
+	s := Init_server(64, 4)
+	fmt.Println(s.dir)
 }
 
 func Test_utils(t *testing.T) {
@@ -25,4 +28,6 @@ func Test_utils(t *testing.T) {
 
 	e := "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"
 	Solve_char_xor(e)
+
+	fmt.Printf("%s\n", GenAlphanumString(20))
 }
