@@ -2,13 +2,18 @@ package oram2pc
 
 import (
 	"bytes"
+	"crypto/rand"
 	"encoding/base64"
+	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"log"
 	"math"
+	"math/big"
 	"regexp"
 )
+
+const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 type estuple struct {
 	entropy        float64
@@ -118,3 +123,64 @@ func Solve_char_xor(a string) {
 	fmt.Printf("with entropy: %f\n", most_alphanum.entropy)
 	fmt.Printf("and alphanum ratio: %f\n", most_alphanum.alphanum_ratio)
 }
+
+func RandomPerm(size int64) []int64 {
+	p := make([]int64, size, size)
+
+	var i int64
+	for i = 0; i < size; i++ {
+		p[i] = i
+	}
+
+	// use fisher-yates shuffling
+	for i = 0; i < size - 2; i++ {
+		j_big, err := rand.Int(rand.Reader, big.NewInt(size - 1 - i))
+		if err != nil {
+			log.Println(err)
+		}
+		j := j_big.Int64()
+
+		p[i], p[j] = p[j], p[i]
+	}
+
+	return p
+}
+
+// generate a uint64 in [0, max)
+func GenUint64(max uint64) uint64 {
+	for {
+		// get random bytes
+		max_f := float64(max - 1)
+		num_bits := uint(math.Ceil(math.Log2(max_f)))
+		size := uint(math.Ceil(float64(num_bits) / 8.0))
+		r := make([]byte, size)
+		_, err := rand.Read(r)
+		if err != nil {
+			log.Println(err)
+		}
+
+		// trim bytes to get the right number of bits
+		var extra_bits uint
+		extra_bits = size * 8 - num_bits
+		r[0] = r[0] >> extra_bits
+
+		guess, num := binary.Uvarint(r)
+		if num <= 0 {
+			continue
+		}
+
+		if guess < max {
+			return guess
+		}
+	}
+}
+
+func GenAlphanumString(size uint8) string {
+	b := make([]byte, size)
+	for i := range b {
+		b[i] = letters[GenUint64(uint64(len(letters)))]
+	}
+
+	return string(b)
+}
+
