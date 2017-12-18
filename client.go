@@ -41,11 +41,12 @@ func (c *Client) Pp() {
  *
  * Returns a new Client with params:
  *   N: number of blocks outsourced to server
- *   B: Number of bytes in each block
+ *   B: Number of bytes in each block (fixed to 32 bytes)
  *   Z: Number of blocks in each bucket
  *   S: size of client's stash in blocks
  */
-func Init_client(N int, B int, Z int, S int) *Client {
+func Init_client(N int, Z int, S int) *Client {
+	B := 32
 	c := &Client{stash: make([]Block, S, S), pos: make(map[int]int)}
 
 	// initialize stash as all zeroes
