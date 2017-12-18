@@ -5,6 +5,7 @@ package oram2pc
 
 import (
 	"fmt"
+	"math"
 )
 
 /*
@@ -12,7 +13,7 @@ import (
  */
 type Client struct {
 	stash []Block
-	pos map[uint]uint
+	pos map[int]int
 }
 
 /*
@@ -25,8 +26,8 @@ func (c *Client) Pp() {
 	for i := 0; i < len(c.stash); i++ {
 		fmt.Printf("{")
 
-		for j := 0; j < len(c.stash[i].mem); j++ {
-			fmt.Printf(" [%b]", c.stash[i].mem[j])
+		for j := 0; j < len(c.stash[i]); j++ {
+			fmt.Printf(" [%b]", c.stash[i][j])
 		}
 
 		fmt.Printf(" }\n")
@@ -40,28 +41,28 @@ func (c *Client) Pp() {
  *
  * Returns a new Client with params:
  *   N: number of blocks outsourced to server
- *   L: height of binary tree
- *   S: size of client's stash in blocks
  *   B: Number of bytes in each block
+ *   Z: Number of blocks in each bucket
+ *   S: size of client's stash in blocks
  */
-func Init_client(N uint, L uint, S uint, B uint) *Client {
-	c := &Client{stash: make([]Block, S, S), pos: make(map[uint]uint)}
+func Init_client(N int, B int, Z int, S int) *Client {
+	c := &Client{stash: make([]Block, S, S), pos: make(map[int]int)}
 
 	// initialize stash as all zeroes
 	for i := range c.stash {
-		c.stash[i].mem = make([]byte, B, B)
+		c.stash[i] = make([]byte, B, B)
 	}
 
 	// initialize pos map as random values
 	// create cryptographically secure shuffling of leaves
-	random_leaves := RandomPerm(1 << L)
+	L := int(math.Ceil(math.Log2(float64(N))))
+	random_leaves := RandomPerm(1 << uint(L))
 	fmt.Println(random_leaves)
 
 	// assign each block with a unique random leaf
-	var i uint
-	for i = 0; i < N; i++ {
+	for i := 0; i < N; i++ {
 		// not all leaves will be used if N < 2^L but that's okay
-		c.pos[i] = uint(random_leaves[i]);
+		c.pos[i] = int(random_leaves[i])
 	}
 
 	return c
