@@ -26,12 +26,12 @@ func Test_utils(t *testing.T) {
 	fmt.Println("Random test subject:", m)
 
 	fmt.Println("Testing pad functions:")
-	fmt.Println(pad(m, 128/8, 0x24))
-	fmt.Println(unpad(pad(m, 128/8, 0x24), 0x24))
+	fmt.Println(pad(m, 0x24))
+	fmt.Println(unpad(pad(m, 0x24), 0x24))
 
 	fmt.Println("Testing plaintext encoding and decoding functions:")
-	fmt.Println(pt_encode(m, 128/8))
-	fmt.Println(pt_decode(pt_encode(m, 128/8)))
+	fmt.Println(pt_encode(m))
+	fmt.Println(pt_decode(pt_encode(m)))
 
 	k := make([]byte, 128/8)
 	rand.Read(k)

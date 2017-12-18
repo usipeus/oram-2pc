@@ -1,3 +1,7 @@
+/*
+ * Useful functions that aren't specific to a client or server
+ */
+
 package oram2pc
 
 import (
@@ -187,9 +191,9 @@ func GenAlphanumString(size uint8) string {
 	return string(b)
 }
 
-func pad(v []byte, length int, c byte) []byte {
-	// right pad
-	p := make([]byte, length)
+func pad(v []byte, c byte) []byte {
+	// right pad to 128 bits
+	p := make([]byte, 16)
 	copy(p, v)
 	for i := len(v); i < len(p); i++ {
 		p[i] = c
@@ -205,13 +209,13 @@ func unpad(v []byte, c byte) []byte {
 	return bytes.Replace(v, padding, nil, len(v))
 }
 
-// padding and b64 encoding for plaintext
-func pt_encode(v []byte, length int) []byte {
+// padding and b64 encoding for plaintext, pad to 128 bits
+func pt_encode(v []byte) []byte {
 	encoded_len := base64.RawStdEncoding.EncodedLen(len(v))
 	b64_v := make([]byte, encoded_len)
 	base64.RawStdEncoding.Encode(b64_v, v)
 
-	return pad(b64_v, length, 0x24)
+	return pad(b64_v, 0x24)
 }
 
 func pt_decode(v []byte) []byte {
