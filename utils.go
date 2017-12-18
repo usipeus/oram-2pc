@@ -2,11 +2,14 @@ package oram2pc
 
 import (
 	"bytes"
+	"crypto/hmac"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	"hash"
 	"log"
 	"math"
 	"math/big"
@@ -182,5 +185,76 @@ func GenAlphanumString(size uint8) string {
 	}
 
 	return string(b)
+}
+
+func pad(v []byte, length int, c byte) []byte {
+	// right pad
+	p := make([]byte, length)
+	copy(p, v)
+	for i := len(v); i < len(p); i++ {
+		p[i] = c
+	}
+
+	return p
+}
+
+func unpad(v []byte, c byte) []byte {
+	// undo right pad
+	padding := make([]byte, 1)
+	padding[0] = c
+	return bytes.Replace(v, padding, nil, len(v))
+}
+
+// padding and b64 encoding for plaintext
+func pt_encode(v []byte, length int) []byte {
+	encoded_len := base64.RawStdEncoding.EncodedLen(len(v))
+	b64_v := make([]byte, encoded_len)
+	base64.RawStdEncoding.Encode(b64_v, v)
+
+	return pad(b64_v, length, 0x24)
+}
+
+func pt_decode(v []byte) []byte {
+	unpadded := unpad(v, 0x24)
+	decoded_len := base64.RawStdEncoding.DecodedLen(len(unpadded))
+	decoded_v := make([]byte, decoded_len)
+	_, err := base64.RawStdEncoding.Decode(decoded_v, unpadded)
+	if err != nil {
+		return nil
+	}
+
+	return decoded_v
+}
+
+// use truncated HMAC for a PRF like in mp3
+func PRF(k []byte) hash.Hash {
+	return hmac.New(sha256.New, k)
+}
+
+// multi-message secure encryption defined in Pass & Shelat 3.7 (pg 94)
+func Encrypt(m []byte, k []byte) []byte {
+	// generate random string r of desired length
+	r := make([]byte, len(m))
+	n, err := rand.Read(r)
+	if n != len(r) || err != nil {
+		return nil
+	}
+
+	// xor with PRF(r)
+	prf := PRF(k)
+	xor_part := XOR_bytes(m, prf.Sum(r)[:len(r)])
+
+	cip := append(r, xor_part...)
+	return cip
+}
+
+func Decrypt(cip []byte, k []byte) []byte {
+	r := cip[:len(cip) / 2]
+	xor_part := cip[len(cip) / 2:]
+
+	prf := PRF(k)
+	m := XOR_bytes(xor_part, prf.Sum(r)[:len(r)])
+
+	return m
 }
 
