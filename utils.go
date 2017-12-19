@@ -52,14 +52,14 @@ func RandomPerm(size int64) []int64 {
 	return p
 }
 
-// generate a uint64 in [0, max)
-func GenUint64(max uint64) uint64 {
+// generate a uint32 in [0, max)
+func GenUint32(max uint32) uint32 {
 	for {
 		// get random bytes
 		max_f := float64(max - 1)
 		num_bits := uint(math.Ceil(math.Log2(max_f)))
-		size := uint(math.Ceil(float64(num_bits) / 8.0))
-		r := make([]byte, size)
+
+		r := make([]byte, 4)
 		_, err := rand.Read(r)
 		if err != nil {
 			log.Println(err)
@@ -67,13 +67,8 @@ func GenUint64(max uint64) uint64 {
 
 		// trim bytes to get the right number of bits
 		var extra_bits uint
-		extra_bits = size * 8 - num_bits
-		r[0] = r[0] >> extra_bits
-
-		guess, num := binary.Uvarint(r)
-		if num <= 0 {
-			continue
-		}
+		extra_bits = 4 * 8 - num_bits
+		guess := binary.LittleEndian.Uint32(r) >> extra_bits
 
 		if guess < max {
 			return guess
@@ -83,13 +78,13 @@ func GenUint64(max uint64) uint64 {
 
 // this is a stupid hack but I'm lazy
 func GenInt(max int) int {
-	return int(GenUint64(uint64(max)))
+	return int(GenUint32(uint32(max)))
 }
 
 func GenAlphanumString(size uint8) string {
 	b := make([]byte, size)
 	for i := range b {
-		b[i] = letters[GenUint64(uint64(len(letters)))]
+		b[i] = letters[GenUint32(uint32(len(letters)))]
 	}
 
 	return string(b)
