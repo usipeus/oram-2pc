@@ -21,9 +21,9 @@ func Test_utils(t *testing.T) {
 
 	k := make([]byte, 128/8)
 	rand.Read(k)
-	cip := Encrypt(m, k)
+	cip := encrypt(m, k)
 	fmt.Println("Testing encrypting and decrypting...")
 	fmt.Println(cip)
-	fmt.Println(Decrypt(cip, k))
+	fmt.Println(decrypt(cip, k))
 }
 

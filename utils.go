@@ -17,7 +17,7 @@ import (
 
 const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-func XOR_bytes(a []byte, b []byte) []byte {
+func xor_bytes(a []byte, b []byte) []byte {
 	if len(a) != len(b) {
 		log.Fatal("XOR_bytes: arguments are not the same length!")
 	}
@@ -30,7 +30,7 @@ func XOR_bytes(a []byte, b []byte) []byte {
 	return r
 }
 
-func RandomPerm(size int64) []int64 {
+func random_perm(size int64) []int64 {
 	p := make([]int64, size, size)
 
 	var i int64
@@ -53,7 +53,7 @@ func RandomPerm(size int64) []int64 {
 }
 
 // generate a uint32 in [0, max)
-func GenUint32(max uint32) uint32 {
+func gen_uint32(max uint32) uint32 {
 	for {
 		// get random bytes
 		max_f := float64(max - 1)
@@ -77,14 +77,14 @@ func GenUint32(max uint32) uint32 {
 }
 
 // this is a stupid hack but I'm lazy
-func GenInt(max int) int {
-	return int(GenUint32(uint32(max)))
+func gen_int(max int) int {
+	return int(gen_uint32(uint32(max)))
 }
 
-func GenAlphanumString(size uint8) string {
+func gen_alphanum_string(size uint8) string {
 	b := make([]byte, size)
 	for i := range b {
-		b[i] = letters[GenUint32(uint32(len(letters)))]
+		b[i] = letters[gen_uint32(uint32(len(letters)))]
 	}
 
 	return string(b)
@@ -130,12 +130,12 @@ func pt_decode(v []byte) []byte {
 }
 
 // dunno if this should be done this way but whatever
-func PRF(k []byte, r []byte) []byte {
+func prf(k []byte, r []byte) []byte {
 	return sha256.New().Sum(append(k, r...))
 }
 
 // multi-message secure encryption defined in Pass & Shelat 3.7 (pg 94)
-func Encrypt(m []byte, k []byte) []byte {
+func encrypt(m []byte, k []byte) []byte {
 	// generate random string r of desired length
 	r := make([]byte, len(m))
 	n, err := rand.Read(r)
@@ -144,17 +144,17 @@ func Encrypt(m []byte, k []byte) []byte {
 	}
 
 	// xor with PRF(r)
-	xor_part := XOR_bytes(m, PRF(k,r)[:len(r)])
+	xor_part := xor_bytes(m, prf(k,r)[:len(r)])
 
 	cip := append(r, xor_part...)
 	return cip
 }
 
-func Decrypt(cip []byte, k []byte) []byte {
+func decrypt(cip []byte, k []byte) []byte {
 	r := cip[:len(cip) / 2]
 	xor_part := cip[len(cip) / 2:]
 
-	m := XOR_bytes(xor_part, PRF(k, r)[:len(r)])
+	m := xor_bytes(xor_part, prf(k, r)[:len(r)])
 
 	return m
 }

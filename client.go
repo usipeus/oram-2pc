@@ -65,7 +65,7 @@ func InitClient(N int, Z int) *Client {
 	// initialize pos map as random values
 	// create cryptographically secure shuffling of leaves
 	c.L = int(math.Ceil(math.Log2(float64(N))))
-	random_leaves := RandomPerm(1 << uint(c.L))
+	random_leaves := random_perm(1 << uint(c.L))
 
 	// assign each block with a unique random leaf
 	for i := 0; i < N; i++ {
@@ -171,7 +171,7 @@ func (c *Client) Access(name string, op bool, a int, data uint64) (uint64, error
 
 	// map block a to new random leaf
 	num_leaves := 1 << uint(c.L)
-	new_leaf := GenInt(num_leaves)
+	new_leaf := gen_int(num_leaves)
 	c.pos[a] = new_leaf
 
 	// read path containing block a (i.e. the path to leaf x)

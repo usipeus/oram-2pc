@@ -132,7 +132,7 @@ func is_dummy(blk []byte) bool {
  */
 func enc_dummy_block(k []byte) Block {
 	dummy_plain := dummy_block()
-	dummy_cip := Encrypt(dummy_plain, k)
+	dummy_cip := encrypt(dummy_plain, k)
 
 	return dummy_cip
 }
@@ -165,7 +165,7 @@ func block_decode(blk []byte) (int, uint64, bool) {
  * Returns an encrypted version of the encoded block
  */
 func enc_block(blk []byte, k []byte) []byte {
-	return Encrypt(blk, k)
+	return encrypt(blk, k)
 }
 
 /*
@@ -173,6 +173,6 @@ func enc_block(blk []byte, k []byte) []byte {
  * the bool == false, else the block is a dummy block
  */
 func dec_block(blk []byte, k []byte) []byte {
-	return Decrypt(blk, k)
+	return decrypt(blk, k)
 }
 

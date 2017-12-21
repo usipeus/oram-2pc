@@ -39,7 +39,7 @@ type Server struct {
  */
 func init_server(N int, Z int, fsize int) *Server {
 	s := &Server{N: N, B: 32, Z: Z}
-	s.dir = filepath.Join(os.TempDir(), GenAlphanumString(10))
+	s.dir = filepath.Join(os.TempDir(), gen_alphanum_string(10))
 	// height of tree: log2(N)
 	s.L = int(math.Ceil(math.Log2(float64(N))))
 
