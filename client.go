@@ -4,27 +4,27 @@
 package oram2pc
 
 import (
-	"fmt"
 	"crypto/rand"
 	"errors"
+	"fmt"
 	"math"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 /*
  * The client
  */
 type Client struct {
-	N int
-	L int
-	B int
-	Z int
-	stash map[string][]Block
+	N          int
+	L          int
+	B          int
+	Z          int
+	stash      map[string][]Block
 	stash_free map[string]int
-	pos map[int]int
-	keys map[string][]byte
-	servers map[string]*Server
+	pos        map[int]int
+	keys       map[string][]byte
+	servers    map[string]*Server
 }
 
 /*
@@ -221,7 +221,7 @@ func (c *Client) Access(name string, op bool, a int, data uint64) (uint64, error
 	// fill list of intersections greedily (starting from the leaf)
 	inters := make([]int, num_inters)
 	for i := 0; i < num_inters; i++ {
-		inters[i] = old_path[num_inters - 1 - i]
+		inters[i] = old_path[num_inters-1-i]
 	}
 	fmt.Println("Found intersection:", inters)
 
@@ -233,7 +233,7 @@ func (c *Client) Access(name string, op bool, a int, data uint64) (uint64, error
 	cur_stash := c.stash[name]
 
 	// if there aren't enough blocks to write back, then write stash blocks
-	for ; c.stash_free[name] < s.N * s.L; {
+	for c.stash_free[name] < s.N*s.L {
 		if len(blk_to_write) >= len(inters) {
 			break
 		}
@@ -246,7 +246,7 @@ func (c *Client) Access(name string, op bool, a int, data uint64) (uint64, error
 
 	// if out of stash blocks, write dummy blocks
 	if len(blk_to_write) < len(inters) {
-		dummy := make([]Block, len(inters) - len(blk_to_write))
+		dummy := make([]Block, len(inters)-len(blk_to_write))
 		for i := range dummy {
 			dummy[i] = dummy_block()
 		}
@@ -275,4 +275,3 @@ func (c *Client) Access(name string, op bool, a int, data uint64) (uint64, error
 
 	return ret, nil
 }
-

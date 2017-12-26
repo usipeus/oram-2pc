@@ -39,8 +39,8 @@ func random_perm(size int64) []int64 {
 	}
 
 	// use fisher-yates shuffling
-	for i = 0; i < size - 2; i++ {
-		j_big, err := rand.Int(rand.Reader, big.NewInt(size - 1 - i))
+	for i = 0; i < size-2; i++ {
+		j_big, err := rand.Int(rand.Reader, big.NewInt(size-1-i))
 		if err != nil {
 			log.Println(err)
 		}
@@ -67,7 +67,7 @@ func gen_uint32(max uint32) uint32 {
 
 		// trim bytes to get the right number of bits
 		var extra_bits uint
-		extra_bits = 4 * 8 - num_bits
+		extra_bits = 4*8 - num_bits
 		guess := binary.LittleEndian.Uint32(r) >> extra_bits
 
 		if guess < max {
@@ -144,18 +144,17 @@ func encrypt(m []byte, k []byte) []byte {
 	}
 
 	// xor with PRF(r)
-	xor_part := xor_bytes(m, prf(k,r)[:len(r)])
+	xor_part := xor_bytes(m, prf(k, r)[:len(r)])
 
 	cip := append(r, xor_part...)
 	return cip
 }
 
 func decrypt(cip []byte, k []byte) []byte {
-	r := cip[:len(cip) / 2]
-	xor_part := cip[len(cip) / 2:]
+	r := cip[:len(cip)/2]
+	xor_part := cip[len(cip)/2:]
 
 	m := xor_bytes(xor_part, prf(k, r)[:len(r)])
 
 	return m
 }
-

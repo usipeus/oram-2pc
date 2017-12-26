@@ -21,12 +21,12 @@ type Bucket []Block
  * The server
  */
 type Server struct {
-	N int // total number of blocks outsourced
-	L int // height of binary tree
-	B int // block size in bytes, currently fixed at 32
-	Z int // capacity of each bucket in blocks
-	dir string // directory that holds the tree, stored as files
-	fsize int // filesize of each file that represents a level
+	N     int    // total number of blocks outsourced
+	L     int    // height of binary tree
+	B     int    // block size in bytes, currently fixed at 32
+	Z     int    // capacity of each bucket in blocks
+	dir   string // directory that holds the tree, stored as files
+	fsize int    // filesize of each file that represents a level
 }
 
 /*
@@ -50,7 +50,7 @@ func init_server(N int, Z int, fsize int) *Server {
 
 // get full path to the nth bucket on the lth level
 func (s *Server) get_fp(l int, n int) string {
-	fname := filepath.Join(s.dir, strconv.Itoa(l) + "." + strconv.Itoa(n))
+	fname := filepath.Join(s.dir, strconv.Itoa(l)+"."+strconv.Itoa(n))
 	return fname
 }
 
@@ -149,7 +149,7 @@ func (s *Server) get_path(n int) ([]int, error) {
 	}
 
 	// for each level of the tree, get which index the bucket is
-	path := make([]int, s.L + 1)
+	path := make([]int, s.L+1)
 
 	cur_n := n
 	for i := s.L; i >= 0; i-- {
@@ -163,13 +163,13 @@ func (s *Server) get_path(n int) ([]int, error) {
 // returns the file and an offset into that file for a bucket at a given level
 func (s *Server) foffset(l int, n int) (string, int) {
 	// bounds check
-	if n < 0 || n >= (1 << uint(l)) {
+	if n < 0 || n >= (1<<uint(l)) {
 		return "", 0
 	}
 
 	total_bytes := s.B * s.Z * n
 	off := total_bytes % s.fsize
-	fp := s.get_fp(l, total_bytes / s.fsize)
+	fp := s.get_fp(l, total_bytes/s.fsize)
 
 	return fp, off
 }
@@ -181,7 +181,7 @@ func (s *Server) get_path_buckets(n int) ([]Bucket, error) {
 		return nil, err
 	}
 
-	bux := make([]Bucket, s.L + 1)
+	bux := make([]Bucket, s.L+1)
 	for i := range bux {
 		bucket, err := s.read_node(i, path[i])
 		if err != nil {
@@ -193,4 +193,3 @@ func (s *Server) get_path_buckets(n int) ([]Bucket, error) {
 
 	return bux, nil
 }
-

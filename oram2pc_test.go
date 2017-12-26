@@ -40,7 +40,7 @@ func Test_blocks(t *testing.T) {
 	fmt.Println(joined[64:96])
 	fmt.Println(aoeu4)
 	fmt.Println(joined[96:])
-	if len(joined) != len(bucket[0]) * 4 {
+	if len(joined) != len(bucket[0])*4 {
 		panic("Check bucket_join!!!")
 	}
 
@@ -116,4 +116,3 @@ func Test_client(t *testing.T) {
 	}
 	fmt.Println(val)
 }
-

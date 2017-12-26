@@ -44,7 +44,7 @@ func split_bucket(bucket Bucket, key []byte) []Block {
 
 // finds all non-dummy blocks in some buckets
 func find_nondummy(bux []Bucket, key []byte) []Block {
-	nondummy := make([]Block, len(bux) * len(bux[0]))
+	nondummy := make([]Block, len(bux)*len(bux[0]))
 	num_nd := 0
 	for i := range bux {
 		for j := range bux[i] {
@@ -175,4 +175,3 @@ func enc_block(blk []byte, k []byte) []byte {
 func dec_block(blk []byte, k []byte) []byte {
 	return decrypt(blk, k)
 }
-

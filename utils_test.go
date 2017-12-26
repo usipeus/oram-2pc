@@ -1,8 +1,8 @@
 package oram2pc
 
 import (
-	"fmt"
 	"crypto/rand"
+	"fmt"
 	"testing"
 )
 
@@ -26,4 +26,3 @@ func Test_utils(t *testing.T) {
 	fmt.Println(cip)
 	fmt.Println(decrypt(cip, k))
 }
-
