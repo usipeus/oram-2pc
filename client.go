@@ -129,6 +129,16 @@ func (c *Client) AddServer(name string, N int, Z int, fsize int) error {
 	return err
 }
 
+func (c *Client) RemoveServer(name string) error {
+	s, prs := c.servers[name]
+	if prs == true {
+		err := s.remove_tree()
+		return err
+	}
+
+	return errors.New("No server exists by that name!")
+}
+
 func (c *Client) init_server_storage(name string, key []byte) error {
 	s, prs := c.servers[name]
 	if prs == false {
@@ -182,8 +192,8 @@ func (c *Client) Access(name string, op bool, a int, data uint64) (uint64, error
 
 	// find which bucket contains a (the block we want to update)
 	bucket_idx, ret := find_block(buckets, a, key)
-	fmt.Printf("finding which bucket contains a: found %i\n", bucket_idx)
-	fmt.Printf("read value %u\n", ret)
+	fmt.Printf("finding which bucket contains a: found %d\n", bucket_idx)
+	fmt.Printf("read value %d\n", ret)
 
 	// if op is 1 (write), update bucket that contains the data to write
 	if op == true {
@@ -252,7 +262,7 @@ func (c *Client) Access(name string, op bool, a int, data uint64) (uint64, error
 		}
 
 		blk_to_write = append(blk_to_write, dummy...)
-		fmt.Printf("Appending %i dummy blocks...\n", len(dummy))
+		fmt.Printf("Appending %d dummy blocks...\n", len(dummy))
 	}
 
 	// write blocks
@@ -268,7 +278,7 @@ func (c *Client) Access(name string, op bool, a int, data uint64) (uint64, error
 		cur_stash = append(cur_stash, extra_blks...)
 		c.stash_free[name] -= len(extra_blks)
 
-		fmt.Printf("Adding %i blocks to stash...\n", len(extra_blks))
+		fmt.Printf("Adding %d blocks to stash...\n", len(extra_blks))
 	}
 
 	c.stash[name] = cur_stash
