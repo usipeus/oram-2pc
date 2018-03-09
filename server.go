@@ -75,6 +75,12 @@ func (s *Server) create_tree() {
 	}
 }
 
+func (s *Server) remove_tree() error {
+	// delete directory
+	err := os.RemoveAll(s.dir)
+	return err
+}
+
 func (s *Server) write_node(b Bucket, l int, n int) {
 	max_n := (1 << uint(l))
 	if n < 0 || n >= max_n {

@@ -115,4 +115,6 @@ func Test_client(t *testing.T) {
 		panic(err)
 	}
 	fmt.Println(val)
+
+	c.RemoveServer("test")
 }
