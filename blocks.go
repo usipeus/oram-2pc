@@ -14,18 +14,20 @@ type Block []byte
 // makes a bucket consisting of blks and padded with dummy blocks until
 // the bucket reaches a size of max
 func make_bucket(blks []Block, max int, key []byte) Bucket {
-	// can't have more than max blocks in a bucket
-	if max < 0 || len(blks) > max {
-		panic("Can't fit that many blocks in a bucket!")
-	}
 
 	bucket := make(Bucket, max)
-	for i := range blks {
+
+	end := len(blks)
+	if end > max {
+		end = max;
+	}
+
+	for i := 0; i < end; i++ {
 		bucket[i] = enc_block(blks[i], key)
 	}
 
 	// pad with encrypted dummy blocks
-	for i := len(blks); i < max; i++ {
+	for i := end; i < max; i++ {
 		bucket[i] = enc_dummy_block(key)
 	}
 
