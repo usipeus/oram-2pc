@@ -4,6 +4,7 @@
 package oram2pc
 
 import (
+	"container/list"
 	"crypto/rand"
 	"errors"
 	"fmt"
@@ -25,27 +26,6 @@ type Client struct {
 	pos        map[int]int
 	keys       map[string][]byte
 	servers    map[string]*Server
-}
-
-/*
- * Pretty print function for a client
- *
- * Prints the stash and various runtime statistics
- */
-func (c *Client) Pp(name string) {
-	// print blocks
-	stash := c.stash[name]
-	for i := 0; i < len(stash); i++ {
-		fmt.Printf("{")
-
-		for j := 0; j < len(stash[i]); j++ {
-			fmt.Printf(" [%b]", stash[i][j])
-		}
-
-		fmt.Printf(" }\n")
-	}
-
-	fmt.Println(c.pos)
 }
 
 /*
@@ -190,23 +170,10 @@ func (c *Client) Access(name string, op bool, a int, data uint64) (uint64, error
 		return ret, err
 	}
 
-	// find which bucket contains a (the block we want to update)
-	bucket_idx, ret := find_block(buckets, a, key)
-	fmt.Printf("finding which bucket contains a: found %d\n", bucket_idx)
-	fmt.Printf("read value %d\n", ret)
-
-	// if op is 1 (write), update bucket that contains the data to write
-	if op == true {
-		new_block := block_encode(a, data)
-		new_bucket := make_bucket([]Block{new_block}, s.Z, key)
-
-		if bucket_idx != -1 && ret == 0 {
-			buckets[bucket_idx] = new_bucket
-		} else {
-			// update any block since they're all dummy blocks
-			buckets[0] = new_bucket
-		}
-	}
+	// TODO: write nondummy blocks into stash - also, what happens when stash full?
+	cur_stash := c.stash[name]
+	// TODO: keep track of which nondummy blocks were in the path so we can
+	// write them back first
 
 	// find intersections between old and new path
 	old_path, err := s.get_path(x)
@@ -238,9 +205,9 @@ func (c *Client) Access(name string, op bool, a int, data uint64) (uint64, error
 	// write back path
 
 	// write back nondummy blocks first
+	// TODO: use stash instead of the buckets read
 	blk_to_write := find_nondummy(buckets, key)
 	fmt.Println("Writing back nondummy blocks:", blk_to_write)
-	cur_stash := c.stash[name]
 
 	// if there aren't enough blocks to write back, then write stash blocks
 	for c.stash_free[name] < s.N*s.L {
@@ -248,6 +215,7 @@ func (c *Client) Access(name string, op bool, a int, data uint64) (uint64, error
 			break
 		}
 
+		// TODO: fix me?
 		blk_to_write = append(blk_to_write, cur_stash[:1]...)
 		cur_stash = append(cur_stash[1:])
 		c.stash_free[name] += 1
