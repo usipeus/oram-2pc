@@ -4,7 +4,6 @@
 package oram2pc
 
 import (
-	"container/list"
 	"crypto/rand"
 	"errors"
 	"fmt"
