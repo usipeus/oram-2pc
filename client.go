@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	// "net"
 	"strconv"
 	"strings"
 )
@@ -21,7 +22,6 @@ type Client struct {
 	B          int
 	Z          int
 	stash      map[string][]Block
-	stash_free map[string]int
 	pos        map[int]int
 	keys       map[string][]byte
 	servers    map[string]*Server
@@ -54,7 +54,6 @@ func InitClient(N int, Z int) *Client {
 
 	// init stash map
 	c.stash = make(map[string][]Block)
-	c.stash_free = make(map[string]int)
 
 	// initialize empty server map and keys map
 	c.servers = make(map[string]*Server)
@@ -92,15 +91,7 @@ func (c *Client) AddServer(name string, N int, Z int, fsize int) error {
 
 	// init stash
 	S := c.N * c.L
-	cur_stash := make([]Block, S)
-
-	// initialize stash as dummy blocks
-	for i := range cur_stash {
-		cur_stash[i] = enc_dummy_block(key)
-	}
-
-	c.stash[name] = cur_stash
-	c.stash_free[name] = S
+	c.stash[name] = make([]Block, 0, S)
 
 	// initialize serverside storage as all dummy blocks
 	err := c.init_server_storage(name, key)
@@ -137,7 +128,7 @@ func (c *Client) init_server_storage(name string, key []byte) error {
 	return nil
 }
 
-func (c *Client) Access(name string, op bool, a int, data uint64) (uint64, error) {
+func (c *Client) Access(name string, write bool, a int, data uint64) (uint64, error) {
 	var ret uint64 = 0
 
 	// get server
@@ -169,10 +160,41 @@ func (c *Client) Access(name string, op bool, a int, data uint64) (uint64, error
 		return ret, err
 	}
 
-	// TODO: write nondummy blocks into stash - also, what happens when stash full?
+	// write nondummy blocks into stash, record which indexes they're at
 	cur_stash := c.stash[name]
-	// TODO: keep track of which nondummy blocks were in the path so we can
-	// write them back first
+	nondummy := find_nondummy(buckets, key)
+	path_start := len(cur_stash)
+	cur_stash = append(cur_stash, nondummy...)
+	path_end := len(cur_stash)
+	fmt.Println("path_start:", path_start)
+	fmt.Println("path_end:", path_end)
+
+	fmt.Println("nondummy blocks:", nondummy)
+
+	// find index of block we're looking for
+	i := slice_find_block(cur_stash, a)
+
+	// modify contents of block in the stash for a write operation
+	if write {
+		fmt.Println("if writing, found elem at idx", i)
+		new_blk := block_encode(a, data)
+		// if element not found, add it as a stash block
+		if i == -1 {
+			cur_stash = append(cur_stash, new_blk)
+		} else {
+			cur_stash[i] = new_blk
+		}
+
+		ret = data
+	} else {
+		if i == -1 {
+			ret = 0;
+		} else {
+			_, ret, _ = block_decode(cur_stash[i])
+		}
+	}
+
+	fmt.Println("current stash after writing nondummy blocks:", cur_stash)
 
 	// find intersections between old and new path
 	old_path, err := s.get_path(x)
@@ -204,25 +226,32 @@ func (c *Client) Access(name string, op bool, a int, data uint64) (uint64, error
 	// write back path
 
 	// write back nondummy blocks first
-	// TODO: use stash instead of the buckets read
-	blk_to_write := find_nondummy(buckets, key)
+	blk_to_write := make([]Block, 0, len(inters))
+	num := cap(blk_to_write) - len(blk_to_write)
+	if path_end - path_start < num  {
+		num = path_end - path_start
+	}
+
+	fmt.Println("len of blk to write:", len(blk_to_write))
+	fmt.Println("cap of blk to write:", cap(blk_to_write))
+
+	blk_to_write = append(blk_to_write, cur_stash[path_start : path_start + num]...)
 	fmt.Println("Writing back nondummy blocks:", blk_to_write)
 
 	// if there aren't enough blocks to write back, then write stash blocks
-	for c.stash_free[name] < s.N*s.L {
-		if len(blk_to_write) >= len(inters) {
-			break
+	if len(blk_to_write) < cap(blk_to_write) {
+		num = cap(blk_to_write) - len(blk_to_write)
+		if len(cur_stash) < num {
+			num = len(cur_stash)
 		}
 
-		// TODO: fix me?
-		blk_to_write = append(blk_to_write, cur_stash[:1]...)
-		cur_stash = append(cur_stash[1:])
-		c.stash_free[name] += 1
-		fmt.Printf("Appended a stash block...\n")
+		blk_to_write = append(blk_to_write, cur_stash[:num]...)
+		cur_stash = append(cur_stash[num:])
+		fmt.Printf("Appended %d stash block...\n", num)
 	}
 
 	// if out of stash blocks, write dummy blocks
-	if len(blk_to_write) < len(inters) {
+	if len(blk_to_write) < cap(blk_to_write) {
 		dummy := make([]Block, len(inters)-len(blk_to_write))
 		for i := range dummy {
 			dummy[i] = dummy_block()
@@ -243,7 +272,6 @@ func (c *Client) Access(name string, op bool, a int, data uint64) (uint64, error
 	if len(inters) < len(blk_to_write) {
 		extra_blks := blk_to_write[len(inters):]
 		cur_stash = append(cur_stash, extra_blks...)
-		c.stash_free[name] -= len(extra_blks)
 
 		fmt.Printf("Adding %d blocks to stash...\n", len(extra_blks))
 	}

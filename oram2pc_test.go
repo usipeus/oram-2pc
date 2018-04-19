@@ -47,7 +47,7 @@ func Test_blocks(t *testing.T) {
 	bux := []Bucket{dummy_bucket, dummy_bucket, dummy_bucket, bucket}
 	fmt.Println(find_nondummy(bux, key))
 
-	idx, val := find_block(bux, 0x1234, key)
+	idx, val := bucket_find_block(bux, 0x1234, key)
 	fmt.Println("Finding nondummy in buckets: index", idx, "val", val)
 
 	bucket2 := make_bucket([]Block{aoeu}, 4, key)

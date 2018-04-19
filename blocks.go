@@ -64,7 +64,7 @@ func find_nondummy(bux []Bucket, key []byte) []Block {
 }
 
 // find which bucket the block with id "id" is found
-func find_block(bux []Bucket, id int, key []byte) (int, uint64) {
+func bucket_find_block(bux []Bucket, id int, key []byte) (int, uint64) {
 	for i := range bux {
 		for j := range bux[i] {
 			cur_blk := bux[i][j]
@@ -77,6 +77,19 @@ func find_block(bux []Bucket, id int, key []byte) (int, uint64) {
 	}
 
 	return -1, 0
+}
+
+// do the same thing as bucket_find_block but in a slice of blocks
+func slice_find_block(blocks []Block, id int) int {
+	for i := range blocks {
+		cur_id, _, dummy := block_decode(blocks[i])
+
+		if dummy == false && cur_id == id {
+			return i
+		}
+	}
+
+	return -1
 }
 
 // Join concatenates the elements of s to create a new byte slice. The separator
@@ -122,7 +135,7 @@ func dummy_block() Block {
 /*
  * Detects whether the byte slice is the unencrypted dummy block
  */
-func is_dummy(blk []byte) bool {
+func is_dummy(blk Block) bool {
 	result := bytes.Compare(blk, dummy_block())
 	return result == 0
 }
@@ -140,7 +153,7 @@ func enc_dummy_block(k []byte) Block {
 }
 
 // parse an id and value to create a plaintext block ready for encryption
-func block_encode(id int, val uint64) []byte {
+func block_encode(id int, val uint64) Block {
 	// left pad with the id, extended to 8 bytes so we know it's not a dummy blk
 	id_bytes := make([]byte, 8)
 	binary.LittleEndian.PutUint64(id_bytes, uint64(id))
@@ -153,7 +166,7 @@ func block_encode(id int, val uint64) []byte {
 }
 
 // do the opposite of block_encode
-func block_decode(blk []byte) (int, uint64, bool) {
+func block_decode(blk Block) (int, uint64, bool) {
 	if is_dummy(blk) {
 		return 0, uint64(0), true
 	}
@@ -166,14 +179,14 @@ func block_decode(blk []byte) (int, uint64, bool) {
 /*
  * Returns an encrypted version of the encoded block
  */
-func enc_block(blk []byte, k []byte) []byte {
-	return encrypt(blk, k)
+func enc_block(blk Block, k []byte) Block {
+	return Block(encrypt([]byte(blk), k))
 }
 
 /*
  * Returns the plaintext (a uint64) by decrypting an encrypted block if
  * the bool == false, else the block is a dummy block
  */
-func dec_block(blk []byte, k []byte) []byte {
-	return decrypt(blk, k)
+func dec_block(blk Block, k []byte) Block {
+	return Block(decrypt([]byte(blk), k))
 }
