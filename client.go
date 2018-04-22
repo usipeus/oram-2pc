@@ -6,7 +6,7 @@ package oram2pc
 import (
 	"crypto/rand"
 	"errors"
-	"fmt"
+	// "fmt"
 	"math"
 	// "net"
 	"strconv"
@@ -166,17 +166,17 @@ func (c *Client) Access(name string, write bool, a int, data uint64) (uint64, er
 	path_start := len(cur_stash)
 	cur_stash = append(cur_stash, nondummy...)
 	path_end := len(cur_stash)
-	fmt.Println("path_start:", path_start)
-	fmt.Println("path_end:", path_end)
+	// fmt.Println("path_start:", path_start)
+	// fmt.Println("path_end:", path_end)
 
-	fmt.Println("nondummy blocks:", nondummy)
+	// fmt.Println("nondummy blocks:", nondummy)
 
 	// find index of block we're looking for
 	i := slice_find_block(cur_stash, a)
 
 	// modify contents of block in the stash for a write operation
 	if write {
-		fmt.Println("if writing, found elem at idx", i)
+		// fmt.Println("if writing, found elem at idx", i)
 		new_blk := block_encode(a, data)
 		// if element not found, add it as a stash block
 		if i == -1 {
@@ -194,20 +194,20 @@ func (c *Client) Access(name string, write bool, a int, data uint64) (uint64, er
 		}
 	}
 
-	fmt.Println("current stash after writing nondummy blocks:", cur_stash)
+	// fmt.Println("current stash after writing nondummy blocks:", cur_stash)
 
 	// find intersections between old and new path
 	old_path, err := s.get_path(x)
 	if err != nil {
 		return ret, err
 	}
-	fmt.Println("old path:", old_path)
+	// fmt.Println("old path:", old_path)
 
 	new_path, err := s.get_path(new_leaf)
 	if err != nil {
 		return ret, err
 	}
-	fmt.Println("new path:", new_path)
+	// fmt.Println("new path:", new_path)
 
 	num_inters := 0
 	for i := range old_path {
@@ -221,7 +221,7 @@ func (c *Client) Access(name string, write bool, a int, data uint64) (uint64, er
 	for i := 0; i < num_inters; i++ {
 		inters[i] = old_path[num_inters-1-i]
 	}
-	fmt.Println("Found intersection:", inters)
+	// fmt.Println("Found intersection:", inters)
 
 	// write back path
 
@@ -232,11 +232,11 @@ func (c *Client) Access(name string, write bool, a int, data uint64) (uint64, er
 		num = path_end - path_start
 	}
 
-	fmt.Println("len of blk to write:", len(blk_to_write))
-	fmt.Println("cap of blk to write:", cap(blk_to_write))
+	// fmt.Println("len of blk to write:", len(blk_to_write))
+	// fmt.Println("cap of blk to write:", cap(blk_to_write))
 
 	blk_to_write = append(blk_to_write, cur_stash[path_start : path_start + num]...)
-	fmt.Println("Writing back nondummy blocks:", blk_to_write)
+	// fmt.Println("Writing back nondummy blocks:", blk_to_write)
 
 	// if there aren't enough blocks to write back, then write stash blocks
 	if len(blk_to_write) < cap(blk_to_write) {
@@ -247,7 +247,7 @@ func (c *Client) Access(name string, write bool, a int, data uint64) (uint64, er
 
 		blk_to_write = append(blk_to_write, cur_stash[:num]...)
 		cur_stash = append(cur_stash[num:])
-		fmt.Printf("Appended %d stash block...\n", num)
+		// fmt.Printf("Appended %d stash block...\n", num)
 	}
 
 	// if out of stash blocks, write dummy blocks
@@ -258,7 +258,7 @@ func (c *Client) Access(name string, write bool, a int, data uint64) (uint64, er
 		}
 
 		blk_to_write = append(blk_to_write, dummy...)
-		fmt.Printf("Appending %d dummy blocks...\n", len(dummy))
+		// fmt.Printf("Appending %d dummy blocks...\n", len(dummy))
 	}
 
 	// write blocks
@@ -273,7 +273,7 @@ func (c *Client) Access(name string, write bool, a int, data uint64) (uint64, er
 		extra_blks := blk_to_write[len(inters):]
 		cur_stash = append(cur_stash, extra_blks...)
 
-		fmt.Printf("Adding %d blocks to stash...\n", len(extra_blks))
+		// fmt.Printf("Adding %d blocks to stash...\n", len(extra_blks))
 	}
 
 	c.stash[name] = cur_stash

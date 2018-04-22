@@ -5,9 +5,53 @@ package oram2pc
 
 import (
 	"fmt"
+	"math/rand"
 	"strconv"
 	"testing"
 )
+
+func Benchmark_randomwrite(b *testing.B) {
+	// set up 
+	s := "test"
+	N := 4096
+	Z := 4
+	fsize := 4096
+	c := InitClient(N, Z)
+	c.AddServer(s, N, Z, fsize)
+
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		// write to a random block
+		r := rand.Int31n(int32(N))
+		_, err := c.Access(s, true, int(r), uint64(r))
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	c.RemoveServer(s)
+}
+
+func Benchmark_sequentialwrite(b *testing.B) {
+	// set up 
+	s := "test"
+	N := 4096
+	Z := 4
+	fsize := 4096
+	c := InitClient(N, Z)
+	c.AddServer(s, N, Z, fsize)
+
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		// write to every block
+		_, err := c.Access(s, true, n % N, uint64(n % N))
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	c.RemoveServer(s)
+}
 
 func Test_blocks(t *testing.T) {
 	key := []byte("key lul")
