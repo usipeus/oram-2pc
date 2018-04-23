@@ -268,6 +268,8 @@ func (c *Client) Access(name string, write bool, a int, data uint64) (uint64, er
 		s.write_node(bucket, cur_l, inters[i])
 	}
 
+	// TODO: calculate which blocks to write back into the original path?
+
 	// if can't write anymore blocks, copy to the stash
 	if len(inters) < len(blk_to_write) {
 		extra_blks := blk_to_write[len(inters):]
