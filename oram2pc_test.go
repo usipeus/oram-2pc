@@ -5,10 +5,89 @@ package oram2pc
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"strconv"
 	"testing"
 )
+
+func Benchmark_encryption(b *testing.B) {
+	// set up 
+	server := "test"
+	N := 4096
+	L := int(math.Ceil(math.Log2(float64(N))))
+	Z := 4
+	fsize := 4096
+	c := InitClient(N, Z)
+	c.AddServer(server, N, Z, fsize)
+
+	key, _ := c.keys[server]
+
+	b.ResetTimer()
+
+	for n := 0; n < b.N; n++ {
+		for i := 0; i < L; i++ {
+			r := rand.Int31n(int32(N))
+			val := uint64(r)
+			id := int(r)
+			blk := block_encode(id, val)
+			enc := enc_block(blk, key)
+			_ = dec_block(enc, key)
+		}
+	}
+}
+
+func Benchmark_readpath(b *testing.B) {
+	// set up 
+	server := "test"
+	N := 4096
+	Z := 4
+	fsize := 4096
+	c := InitClient(N, Z)
+	c.AddServer(server, N, Z, fsize)
+
+	s, _ := c.servers[server]
+
+	b.ResetTimer()
+
+	for n := 0; n < b.N; n++ {
+		r := int(rand.Int31n(int32(N)))
+		_, err := s.get_path_buckets(r)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	// old_path, err := s.get_path(x)
+}
+
+func Benchmark_readwritepath(b *testing.B) {
+	// set up 
+	server := "test"
+	N := 4096
+	Z := 4
+	fsize := 4096
+	c := InitClient(N, Z)
+	c.AddServer(server, N, Z, fsize)
+
+	s, _ := c.servers[server]
+	key, _ := c.keys[server]
+
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		r := int(rand.Int31n(int32(N)))
+		path, err := s.get_path(r)
+		if err != nil {
+			panic(err)
+		}
+
+		for i := range path {
+			cur_l := len(path) - 1 - i
+			bucket := make_bucket(nil, Z, key)
+			s.write_node(bucket, cur_l, path[i])
+		}
+	}
+}
 
 func Benchmark_randomwrite(b *testing.B) {
 	// set up 

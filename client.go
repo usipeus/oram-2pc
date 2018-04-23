@@ -6,11 +6,12 @@ package oram2pc
 import (
 	"crypto/rand"
 	"errors"
-	// "fmt"
+	"fmt"
 	"math"
 	// "net"
 	"strconv"
 	"strings"
+	"time"
 )
 
 /*
@@ -160,6 +161,8 @@ func (c *Client) Access(name string, write bool, a int, data uint64) (uint64, er
 		return ret, err
 	}
 
+	start := time.Now()
+
 	// write nondummy blocks into stash, record which indexes they're at
 	cur_stash := c.stash[name]
 	nondummy := find_nondummy(buckets, key)
@@ -193,6 +196,10 @@ func (c *Client) Access(name string, write bool, a int, data uint64) (uint64, er
 			_, ret, _ = block_decode(cur_stash[i])
 		}
 	}
+
+	elapsed := time.Since(start)
+	fmt.Printf("Calculating writeback took %s\n", elapsed)
+
 
 	// fmt.Println("current stash after writing nondummy blocks:", cur_stash)
 
